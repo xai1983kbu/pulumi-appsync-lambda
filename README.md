@@ -66,3 +66,11 @@ https://medium.com/@wesselsbernd/bff-back-end-for-front-end-architecture-as-of-m
 In folder `lambdas/{Type}/` we will store `{property.js}` files that will contain our lambda functions for Appsync Resolvers.
 In folder `qraphql/resolvers` we will store `{Type.property.js}` files that will contain request and response template mappings.
 Naming convention for `{Type}` folders and `{Type.property.js}` files you can find in the article mentioned above.
+
+## Lambda Layer Creation
+
+In order to create a file for Lambda-Layer with .zip extension I use Ubuntu SubSystem on Windows
+We can find files from Windows in Ubuntu SubSystem by next path:
+`/mnt/c/Users/{myUserName}/{next structure of folders}`
+Algorithm of creation zipped file for Lambda-Layer you can find in the next article
+https://www.freecodecamp.org/news/lambda-layers-2f80b9211318/
