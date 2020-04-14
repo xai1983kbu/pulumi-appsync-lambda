@@ -63,6 +63,6 @@ https://medium.com/@wesselsbernd/bff-back-end-for-front-end-architecture-as-of-m
 
 ## Resolver separation
 
-In folder `qraphql/resolvers/lambdas/{Type}/` we will store `{property.js}` files that will contain our lambda functions for Appsync Resolvers.
+In folder `lambdas/{Type}/` we will store `{property.js}` files that will contain our lambda functions for Appsync Resolvers.
 In folder `qraphql/resolvers` we will store `{Type.property.js}` files that will contain request and response template mappings.
 Naming convention for `{Type}` folders and `{Type.property.js}` files you can find in the article mentioned above.
