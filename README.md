@@ -61,7 +61,8 @@ $ pulumi destroy
 This example is inspired by the article
 https://medium.com/@wesselsbernd/bff-back-end-for-front-end-architecture-as-of-may-2019-5d09b913a8ed
 
-## Using files for lambda and req/res template mapping
+## Resolver separation
 
-In folder `qraphql/resolvers/lambdas/` we will store files that will contain our lambda functions for Appsync Resolvers.
-In folder `qraphql/resolvers` we will store files that will contain request and response template mappings (naming convention you can find in the mentioned article above).
+In folder `qraphql/resolvers/lambdas/{Type}/` we will store `{property.js}` files that will contain our lambda functions for Appsync Resolvers.
+In folder `qraphql/resolvers` we will store `{Type.property.js}` files that will contain request and response template mappings.
+Naming convention for `{Type}` folders and `{Type.property.js}` files you can find in the article mentioned above.
