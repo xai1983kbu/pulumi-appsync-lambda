@@ -1,4 +1,4 @@
-lambda = require('../../lambdas/singlePost')
+lambda = require('./lambdas/Query/singlePost')
 
 // use save without formatting
 // https://glebbahmutov.com/blog/configure-prettier-in-vscode/#saving-without-formatting
