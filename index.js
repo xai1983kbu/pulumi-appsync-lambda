@@ -6,6 +6,9 @@ const awsx = require('@pulumi/awsx')
 const random = require('@pulumi/random')
 
 const fs = require('fs')
+const glob = require('glob')
+const path = require('path')
+
 const secret = require('./secret')
 
 // Add the ability to read .graphql files as strings.
@@ -57,25 +60,25 @@ const graphQLApi = new aws.appsync.GraphQLApi('graphQLApi', {
   schema: graphQLSchema
 })
 
-const lambda = new aws.lambda.CallbackFunction('lambdaForAppSync', {
-  callback: async e => {
-    const responseBody = {
-      id: 1,
-      title: 'First Post - Pulumi AppSync with Lambda as DataSource'
-    }
+const createLambda = lambdaFunction =>
+  new aws.lambda.CallbackFunction('lambdaForAppSync', {
+    // callback: async e => {
+    //   const responseBody = {
+    //     id: 1,
+    //     title: `First Post - Pulumi AppSync with Lambda as DataSource ${lambdaSourceCode} --- ${e.arguments.id}`
+    //   }
 
-    return responseBody
-  }
-})
+    //   return responseBody
+    // }
+    callback: lambdaFunction
+  })
 
-const lambdaDataSourceRandomString = new random.RandomString(
-  'lambda-DataSource-ForAppSync',
-  {
+const createLambdaDataSourceRandomString = () =>
+  new random.RandomString('lambda-DataSource-ForAppSync', {
     length: 15,
     special: false,
     number: false
-  }
-)
+  })
 
 //-------------
 
@@ -98,9 +101,8 @@ const graphQLDataSourceServiceRole = new aws.iam.Role(
   }
 )
 
-const graphQLDataSourceServiceRolePolicy = new aws.iam.RolePolicy(
-  'graphQLDataSourceServiceRolePolicy',
-  {
+const createGraphQLDataSourceServiceRolePolicy = lambda =>
+  new aws.iam.RolePolicy('graphQLDataSourceServiceRolePolicy', {
     policy: pulumi.interpolate`{
     "Version": "2012-10-17",
     "Statement": [
@@ -117,14 +119,17 @@ const graphQLDataSourceServiceRolePolicy = new aws.iam.RolePolicy(
     ]
 }`,
     role: graphQLDataSourceServiceRole.id
-  }
-)
+  })
 
 //-------------
 
-const lambdaDataSource = new aws.appsync.DataSource(
-  'lambda-DataSource-ForAppSync',
-  {
+const createLambdaDataSource = (
+  lambda,
+  lambdaDataSourceRandomString,
+  graphQLApi,
+  graphQLDataSourceServiceRole
+) =>
+  new aws.appsync.DataSource('lambda-DataSource-ForAppSync', {
     name: lambdaDataSourceRandomString.result,
     apiId: graphQLApi.id,
     lambdaConfig: {
@@ -133,20 +138,58 @@ const lambdaDataSource = new aws.appsync.DataSource(
     awsRegion: 'us-east-1',
     type: 'AWS_LAMBDA',
     serviceRoleArn: graphQLDataSourceServiceRole.arn
-  }
-)
+  })
 
-const graphQLResolver = new aws.appsync.Resolver(`graphQLResolver_AWS_LAMBDA`, {
-  apiId: graphQLApi.id,
-  dataSource: lambdaDataSource.name,
-  requestTemplate: `{
-    "version" : "2017-02-28",
-    "operation": "Invoke",
-    "payload": $util.toJson($context.arguments)
-}`,
-  responseTemplate: '$utils.toJson($context.result)',
-  field: 'singlePost',
-  type: 'Query'
+// const graphQLResolver = new aws.appsync.Resolver(`graphQLResolver_AWS_LAMBDA`, {
+//   apiId: graphQLApi.id,
+//   dataSource: lambdaDataSource.name,
+//   requestTemplate: `{
+//     "version" : "2017-02-28",
+//     "operation": "Invoke",
+//     "payload": $util.toJson($context.arguments)
+// }`,
+//   responseTemplate: '$utils.toJson($context.result)',
+//   field: 'singlePost',
+//   type: 'Query'
+// })
+
+// Regular Expression helper function
+const findMatches = (regex, str, matches = []) => {
+  const res = regex.exec(str)
+  res && matches.push(res[1]) && findMatches(regex, str, matches)
+  return matches
+}
+
+const graphQLResolvers = []
+glob.sync('./graphql/resolvers/**/**.js').forEach(function (file) {
+  const resolverMatches = findMatches(/([a-zA-Z]+)\./g, file)
+  const resolverObject = require(path.resolve(file))
+
+  // ---  Creating Lambda Data Source  --- //
+  const lambda = createLambda(resolverObject.lambdaFunction)
+  const lambdaDataSourceRandomString = createLambdaDataSourceRandomString()
+  createGraphQLDataSourceServiceRolePolicy(lambda)
+
+  const lambdaDataSource = createLambdaDataSource(
+    lambda,
+    lambdaDataSourceRandomString,
+    graphQLApi,
+    graphQLDataSourceServiceRole
+  )
+  // ---  Creating Lambda Data Source  --- //
+
+  const resolverQLResolver = new aws.appsync.Resolver(
+    `graphQLResolver_${resolverMatches.join('_')}`,
+    {
+      apiId: graphQLApi.id,
+      dataSource: lambdaDataSource.name,
+      field: resolverMatches[1],
+      requestTemplate: JSON.stringify(resolverObject.requestTemplate),
+      responseTemplate: resolverObject.responseTemplate.trim(),
+      type: resolverMatches[0]
+    }
+  )
+  graphQLResolvers.push(graphQLResolvers)
 })
 
 // exports.bucketName = graphQLApi.id
