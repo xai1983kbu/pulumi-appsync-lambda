@@ -3,20 +3,22 @@
 // use save without formatting
 // https://glebbahmutov.com/blog/configure-prettier-in-vscode/#saving-without-formatting
 
-lambda = require('../../lambdas/Query/singlePost')
+lambda = require('../../lambdas/Query/queryRadius')
 
 exports.requestTemplate = {
   "version": "2017-02-28",
   "operation": "Invoke",
   "payload": {
     "field": "singlePost",
-    "arguments": { id: "$context.arguments.id" }
+    // "arguments": { id: "$context.arguments.id" }
   }
 }
 
+// $utils.toJson($context.result)
 exports.responseTemplate = `
-$utils.toJson($context.result)
+$context.result
 `.trim()
 
-exports.lambdaCallbackFunction = lambda.singlePost
-exports.lambdaCallbackFactory = undefined
+exports.lambdaCallbackFunction = undefined
+exports.lambdaCallbackFactory = lambda.queryRadiusCallbackFactory
+

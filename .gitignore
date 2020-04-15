@@ -1,3 +1,4 @@
 /node_modules/
 secret.js
 /lambdaLayers/*/nodejs/node_modules
+/lambdas/dynamodb-geo/Query/node_modules

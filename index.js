@@ -60,21 +60,20 @@ const graphQLApi = new aws.appsync.GraphQLApi('graphQLApi', {
   schema: graphQLSchema
 })
 
-const createLambda = lambdaFunction =>
-  new aws.lambda.CallbackFunction('lambdaForAppSync', {
-    // callback: async e => {
-    //   const responseBody = {
-    //     id: 1,
-    //     title: `First Post - Pulumi AppSync with Lambda as DataSource ${lambdaSourceCode} --- ${e.arguments.id}`
-    //   }
-
-    //   return responseBody
-    // }
-    callback: lambdaFunction
+const createLambda = (
+  lambdaCallbackFunction,
+  lambdaCallbackFactory,
+  resolverName
+) =>
+  new aws.lambda.CallbackFunction(`lambdaCallbackFunction_${resolverName}`, {
+    callback: lambdaCallbackFunction,
+    callbackFactory: lambdaCallbackFactory,
+    runtime: 'nodejs12.x',
+    timeout: 20
   })
 
-const createLambdaDataSourceRandomString = () =>
-  new random.RandomString('lambda-DataSource-ForAppSync', {
+const createLambdaDataSourceRandomString = resolverName =>
+  new random.RandomString(`RandomString_${resolverName}`, {
     length: 15,
     special: false,
     number: false
@@ -101,8 +100,8 @@ const graphQLDataSourceServiceRole = new aws.iam.Role(
   }
 )
 
-const createGraphQLDataSourceServiceRolePolicy = lambda =>
-  new aws.iam.RolePolicy('graphQLDataSourceServiceRolePolicy', {
+const createGraphQLDataSourceServiceRolePolicy = (lambda, resolverName) =>
+  new aws.iam.RolePolicy(`RolePolicy_${resolverName}`, {
     policy: pulumi.interpolate`{
     "Version": "2012-10-17",
     "Statement": [
@@ -127,9 +126,10 @@ const createLambdaDataSource = (
   lambda,
   lambdaDataSourceRandomString,
   graphQLApi,
-  graphQLDataSourceServiceRole
+  graphQLDataSourceServiceRole,
+  resolverName
 ) =>
-  new aws.appsync.DataSource('lambda-DataSource-ForAppSync', {
+  new aws.appsync.DataSource(`lambda-DataSource-${resolverName}`, {
     name: lambdaDataSourceRandomString.result,
     apiId: graphQLApi.id,
     lambdaConfig: {
@@ -165,16 +165,24 @@ glob.sync('./graphql/resolvers/**/**.js').forEach(function (file) {
   const resolverMatches = findMatches(/([a-zA-Z]+)\./g, file)
   const resolverObject = require(path.resolve(file))
 
+  const resolverName = `${resolverMatches[0]}-${resolverMatches[1]}`
   // ---  Creating Lambda Data Source  --- //
-  const lambda = createLambda(resolverObject.lambdaFunction)
-  const lambdaDataSourceRandomString = createLambdaDataSourceRandomString()
-  createGraphQLDataSourceServiceRolePolicy(lambda)
+  const lambda = createLambda(
+    resolverObject.lambdaCallbackFunction,
+    resolverObject.lambdaCallbackFactory,
+    resolverName
+  )
+  const lambdaDataSourceRandomString = createLambdaDataSourceRandomString(
+    resolverName
+  )
+  createGraphQLDataSourceServiceRolePolicy(lambda, resolverName)
 
   const lambdaDataSource = createLambdaDataSource(
     lambda,
     lambdaDataSourceRandomString,
     graphQLApi,
-    graphQLDataSourceServiceRole
+    graphQLDataSourceServiceRole,
+    resolverName
   )
   // ---  Creating Lambda Data Source  --- //
 
