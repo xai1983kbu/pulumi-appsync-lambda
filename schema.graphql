@@ -1,5 +1,6 @@
 type Mutation {
     putPost(id: ID!, title: String!): Post
+		addPlace(place: PlaceInput): Place
 }
 
 type Post {
@@ -7,9 +8,20 @@ type Post {
 	title: String!
 }
 
-type Point {
+type Place {
 	latitude: Float
 	longitude: Float
+	name: String
+	address: String
+	phone: String
+}
+
+input PlaceInput {
+	latitude: Float
+	longitude: Float
+	name: String
+	address: String
+	phone: String
 }
 
 input PointInput {
@@ -24,7 +36,7 @@ input QueryRadiusInput {
 
 type Query {
     singlePost(id: ID!): Post
-    queryRadius: String
+    queryRadius(radius: Int, centerPoint: PointInput): [Place!]
 }
 
 schema {

@@ -9,14 +9,18 @@ exports.requestTemplate = {
   "version": "2017-02-28",
   "operation": "Invoke",
   "payload": {
-    "field": "singlePost",
-    // "arguments": { id: "$context.arguments.id" }
+    "field": "queryRadius",
+    "arguments": { 
+      radius: "$context.arguments.radius",  
+      centerPoint: { 
+        "latitude": "$context.arguments.centerPoint.latitude",
+        "longitude": "$context.arguments.centerPoint.longitude" }}
   }
 }
 
 // $utils.toJson($context.result)
 exports.responseTemplate = `
-$context.result
+$utils.toJson($context.result)
 `.trim()
 
 exports.lambdaCallbackFunction = undefined

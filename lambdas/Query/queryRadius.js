@@ -7,26 +7,52 @@ exports.queryRadiusCallbackFactory = () => {
 
   const config = new ddbGeo.GeoDataManagerConfiguration(
     ddb,
-    'askJames-wheresStarbucks'
+    'ask-where-to-find-place'
   )
   config.hashKeyLength = 5
 
   const myGeoTableManager = new ddbGeo.GeoDataManager(config)
 
   return async event => {
-    let myLocation
+    const radius = event.arguments.radius
+    const latitude = event.arguments.centerPoint.latitude
+    const longitude = event.arguments.centerPoint.longitude
 
-    myLocation = await myGeoTableManager.queryRadius({
-      RadiusInMeter: 111900,
+    const myLocations = await myGeoTableManager.queryRadius({
+      RadiusInMeter: radius,
       CenterPoint: {
-        latitude: 49.473301,
-        longitude: 35.001911
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
       }
     })
+
+    let foundLocations = []
+    myLocations.forEach(location => {
+      const locationCoordinates = JSON.parse(location.geoJson.S)['coordinates']
+      foundLocations.push({
+        latitude: locationCoordinates[0],
+        longitude: locationCoordinates[1],
+        name: location.name.S,
+        address: location.address.S,
+        phone: location.phone.S !== 'empty' ? location.phone.S : undefined
+      })
+    })
+
     const response = {
       statusCode: 200,
-      body: JSON.stringify(myLocation)
+      body: JSON.stringify(foundLocations)
     }
-    return response
+    return foundLocations
+
+    // const radius = event.arguments.radius
+    // const latitude = event.arguments.centerPoint.latitude
+    // const longitude = event.arguments.centerPoint.longitude
+
+    // return {
+    //   statusCode: 200,
+    //   body: JSON.stringify(
+    //     `radius: ${radius}; latitude: ${latitude}; longitude: ${longitude}`
+    //   )
+    // }
   }
 }
