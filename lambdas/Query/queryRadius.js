@@ -5,10 +5,7 @@ exports.queryRadiusCallbackFactory = () => {
   const ddb = new AWS.DynamoDB()
   const ddbGeo = require('dynamodb-geo')
 
-  const config = new ddbGeo.GeoDataManagerConfiguration(
-    ddb,
-    'ask-where-to-find-place'
-  )
+  const config = new ddbGeo.GeoDataManagerConfiguration(ddb, 'GeoLandProject')
   config.hashKeyLength = 5
 
   const myGeoTableManager = new ddbGeo.GeoDataManager(config)
@@ -28,13 +25,14 @@ exports.queryRadiusCallbackFactory = () => {
 
     let foundLocations = []
     myLocations.forEach(location => {
-      const locationCoordinates = JSON.parse(location.geoJson.S)['coordinates']
+      const jsonPlaceInfo = JSON.parse(location.jsonPlaceInfo.S)
       foundLocations.push({
-        latitude: locationCoordinates[0],
-        longitude: locationCoordinates[1],
-        name: location.name.S,
-        address: location.address.S,
-        phone: location.phone.S !== 'empty' ? location.phone.S : undefined
+        latitude: jsonPlaceInfo['latitude'],
+        longitude: jsonPlaceInfo['longitude'],
+        title: jsonPlaceInfo['title'],
+        content: jsonPlaceInfo['content'],
+        image: jsonPlaceInfo['images']['0'],
+        userId: jsonPlaceInfo['userId']
       })
     })
 

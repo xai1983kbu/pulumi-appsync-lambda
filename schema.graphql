@@ -11,17 +11,93 @@ type Post {
 type Place {
 	latitude: Float
 	longitude: Float
-	name: String
-	address: String
-	phone: String
+	title: String
+	content: String
+	image: S3Object
+	userId: String
+}
+
+type S3Object {
+	bucket: String!
+  region: String!
+  key: String!
+}
+
+input S3ObjectInput {
+	bucket: String!
+  region: String!
+  key: String!
 }
 
 input PlaceInput {
 	latitude: Float
 	longitude: Float
-	name: String
-	address: String
-	phone: String
+	title: String
+	content: String
+	image: S3ObjectInput
+	userId: String
+}
+
+
+// 
+type Mutation {
+	putPost(id: ID!, title: String!): Post
+	addPlace(place: PlaceInput): Place
+}
+
+type Place {
+	latitude: Float
+	longitude: Float
+	title: String
+	content: String
+	image: S3Object
+	userId: String
+}
+
+input PlaceInput {
+	latitude: Float
+	longitude: Float
+	title: String
+	content: String
+	image: S3ObjectInput
+	userId: String
+}
+
+input PointInput {
+	latitude: Float
+	longitude: Float
+}
+
+type Post {
+	id: ID!
+	title: String!
+}
+
+type Query {
+	singlePost(id: ID!): Post
+	queryRadius(radius: Int, centerPoint: PointInput): [Place!]
+}
+
+input QueryRadiusInput {
+	radiusInMeter: Int!
+	centerPoint: PointInput!
+}
+
+type S3Object {
+	bucket: String!
+	region: String!
+	key: String!
+}
+
+input S3ObjectInput {
+	bucket: String!
+	region: String!
+	key: String!
+}
+
+schema {
+	query: Query
+	mutation: Mutation
 }
 
 input PointInput {

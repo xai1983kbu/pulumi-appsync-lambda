@@ -13,16 +13,19 @@ exports.requestTemplate = {
     "arguments": {
       "latitude": '$context.arguments.place.latitude',
       "longitude": '$context.arguments.place.longitude',
-      "name": '$context.arguments.place.name',
-      "address": '$context.arguments.place.address',
-      "phone": '$context.arguments.place.phone'
-    }
+      "title": '$context.arguments.place.title',
+      "content": '$context.arguments.place.content',
+      "imgBucket": '$context.arguments.place.image.bucket',
+      "imgRegion": '$context.arguments.place.image.region',
+      "imgKey": '$context.arguments.place.image.key',
+      "userId": '$context.arguments.place.userId'
+    },
   }
 }
 
 // $utils.toJson($context.result)
 exports.responseTemplate = `
-$utils.toJson($context.result)
+$util.toJson($context.result)
 `.trim()
 
 exports.lambdaCallbackFunction = undefined

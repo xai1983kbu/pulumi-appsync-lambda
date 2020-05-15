@@ -7,23 +7,45 @@ exports.addPlaceCallbackFactory = () => {
   const ddb = new AWS.DynamoDB()
   const ddbGeo = require('dynamodb-geo')
 
-  const config = new ddbGeo.GeoDataManagerConfiguration(
-    ddb,
-    'ask-where-to-find-place'
-  )
+  const config = new ddbGeo.GeoDataManagerConfiguration(ddb, 'GeoLandProject')
   config.hashKeyLength = 5
 
   const myGeoTableManager = new ddbGeo.GeoDataManager(config)
 
   return async event => {
+    console.log('event: ', event)
     const latitude = event.arguments.latitude
     const longitude = event.arguments.longitude
-    const address = event.arguments.address
-    const name = event.arguments.name
-    let phone = event.arguments.phone
+    const title = event.arguments.title
+    const content = event.arguments.content
+    const imgBucket = event.arguments.imgBucket
+    const imgRegion = event.arguments.imgRegion
+    const imgKey = event.arguments.imgKey
+
+    const userId = event.arguments.userId
+
+    const jsonPlaceInfo = JSON.stringify({
+      latitude,
+      longitude,
+      title,
+      content,
+      userId,
+      images: [
+        {
+          bucket: imgBucket,
+          region: imgRegion,
+          key: imgKey
+        }
+      ]
+    })
 
     try {
       // throw 'Error with dynamodb'
+      if (content.title > 250)
+        throw 'Length of Title is more than 250 characters'
+
+      if (content.length > 2500)
+        throw 'Length of Content is more than 2500 characters'
 
       const dbResult = await myGeoTableManager
         .putPoint({
@@ -36,9 +58,8 @@ exports.addPlaceCallbackFactory = () => {
           PutItemInput: {
             // Passed through to the underlying DynamoDB.putItem request. TableName is filled in for you.
             Item: {
-              name: { S: name || 'empty' },
-              address: { S: address || 'empty' },
-              phone: { S: phone || 'empty' }
+              jsonPlaceInfo: { S: jsonPlaceInfo || 'empty' },
+              userIdInPool: { S: userId || 'empty' }
             }
             // ... Anything else to pass through to `putItem`, eg ConditionExpression
           }
@@ -48,13 +69,18 @@ exports.addPlaceCallbackFactory = () => {
       return {
         latitude,
         longitude,
-        address,
-        name,
-        phone
+        title,
+        content,
+        image: {
+          bucket: imgBucket,
+          region: imgRegion,
+          key: imgKey
+        },
+        userId
       }
     } catch (err) {
-      console.error(err)
-      return {}
+      // console.error(err)
+      return { error: err }
     }
   }
 }
