@@ -1,48 +1,15 @@
-type Mutation {
-    putPost(id: ID!, title: String!): Post
-		addPlace(place: PlaceInput): Place
-}
-
-type Post {
+input FindPlaceInput {
 	id: ID!
-	title: String!
+	latitude: Float!
+	longitude: Float!
+	userId: ID!
 }
 
-type Place {
-	latitude: Float
-	longitude: Float
-	title: String
-	content: String
-	image: S3Object
-	userId: String
-}
-
-type S3Object {
-	bucket: String!
-  region: String!
-  key: String!
-}
-
-input S3ObjectInput {
-	bucket: String!
-  region: String!
-  key: String!
-}
-
-input PlaceInput {
-	latitude: Float
-	longitude: Float
-	title: String
-	content: String
-	image: S3ObjectInput
-	userId: String
-}
-
-
-// 
 type Mutation {
 	putPost(id: ID!, title: String!): Post
 	addPlace(place: PlaceInput): Place
+	deletePlace(findPlaceInput: FindPlaceInput): Boolean
+	updatePlace(findPlaceInput: FindPlaceInput, updateInput: UpdatePlaceInput): Place
 }
 
 type Place {
@@ -52,6 +19,7 @@ type Place {
 	content: String
 	image: S3Object
 	userId: String
+	placeId: String
 }
 
 input PlaceInput {
@@ -95,27 +63,13 @@ input S3ObjectInput {
 	key: String!
 }
 
+input UpdatePlaceInput {
+	title: String
+	content: String
+	image: S3ObjectInput
+}
+
 schema {
 	query: Query
 	mutation: Mutation
-}
-
-input PointInput {
-	latitude: Float
-	longitude: Float
-}
-
-input QueryRadiusInput {
-	radiusInMeter: Int!
-	centerPoint: PointInput!
-}
-
-type Query {
-    singlePost(id: ID!): Post
-    queryRadius(radius: Int, centerPoint: PointInput): [Place!]
-}
-
-schema {
-    query: Query
-    mutation: Mutation
 }

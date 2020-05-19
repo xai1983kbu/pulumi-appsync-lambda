@@ -32,7 +32,8 @@ exports.queryRadiusCallbackFactory = () => {
         title: jsonPlaceInfo['title'],
         content: jsonPlaceInfo['content'],
         image: jsonPlaceInfo['images']['0'],
-        userId: jsonPlaceInfo['userId']
+        userId: jsonPlaceInfo['userId'],
+        placeId: location.rangeKey['S']
       })
     })
 
@@ -41,16 +42,5 @@ exports.queryRadiusCallbackFactory = () => {
       body: JSON.stringify(foundLocations)
     }
     return foundLocations
-
-    // const radius = event.arguments.radius
-    // const latitude = event.arguments.centerPoint.latitude
-    // const longitude = event.arguments.centerPoint.longitude
-
-    // return {
-    //   statusCode: 200,
-    //   body: JSON.stringify(
-    //     `radius: ${radius}; latitude: ${latitude}; longitude: ${longitude}`
-    //   )
-    // }
   }
 }

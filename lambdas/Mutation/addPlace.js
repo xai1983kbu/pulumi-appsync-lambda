@@ -24,12 +24,15 @@ exports.addPlaceCallbackFactory = () => {
 
     const userId = event.arguments.userId
 
+    const placeId = uuidv4()
+
     const jsonPlaceInfo = JSON.stringify({
       latitude,
       longitude,
       title,
       content,
       userId,
+      placeId,
       images: [
         {
           bucket: imgBucket,
@@ -41,7 +44,7 @@ exports.addPlaceCallbackFactory = () => {
 
     try {
       // throw 'Error with dynamodb'
-      if (content.title > 250)
+      if (content.length > 250)
         throw 'Length of Title is more than 250 characters'
 
       if (content.length > 2500)
@@ -49,7 +52,7 @@ exports.addPlaceCallbackFactory = () => {
 
       const dbResult = await myGeoTableManager
         .putPoint({
-          RangeKeyValue: { S: uuidv4() }, // Use this to ensure uniqueness of the hash/range pairs.
+          RangeKeyValue: { S: placeId }, // Use this to ensure uniqueness of the hash/range pairs.
           GeoPoint: {
             // An object specifying latitutde and longitude as plain numbers. Used to build the geohash, the hashkey and geojson data
             latitude: parseFloat(latitude),
@@ -71,6 +74,8 @@ exports.addPlaceCallbackFactory = () => {
         longitude,
         title,
         content,
+        userId,
+        placeId,
         image: {
           bucket: imgBucket,
           region: imgRegion,

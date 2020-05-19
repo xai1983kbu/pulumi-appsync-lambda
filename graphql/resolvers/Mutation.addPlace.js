@@ -13,12 +13,12 @@ exports.requestTemplate = {
     "arguments": {
       "latitude": '$context.arguments.place.latitude',
       "longitude": '$context.arguments.place.longitude',
-      "title": '$context.arguments.place.title',
-      "content": '$context.arguments.place.content',
-      "imgBucket": '$context.arguments.place.image.bucket',
-      "imgRegion": '$context.arguments.place.image.region',
-      "imgKey": '$context.arguments.place.image.key',
-      "userId": '$context.arguments.place.userId'
+      "userId": '#if ($context.arguments.place.userId)$context.arguments.place.userId#else#end',
+      "title": '#if ($context.arguments.place.title)$context.arguments.place.title#else#end',
+      "content": '#if ($context.arguments.place.content)$context.arguments.place.content#else#end',
+      "imgBucket": '#if ($context.arguments.place.image)$context.arguments.place.image.bucket#else#end',
+      "imgRegion": '#if ($context.arguments.place.image)$context.arguments.place.image.region#else#end',
+      "imgKey": '#if ($context.arguments.place.image)$context.arguments.place.image.key#else#end',
     },
   }
 }
